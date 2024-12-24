@@ -4,7 +4,7 @@ style: styles.css
 ---
 
 ```js
-import {scatter,displot,legend,barplot, tickplot} from './plotting.js';
+import {readingdisplot, covdisplot,legend,barplot, tickplot} from './plotting.js';
 import {knn} from './nearest.js';
 ```
 
@@ -38,10 +38,19 @@ const data = FileAttachment("data/scores.csv").csv({typed: true});
 
 <div class="grid grid-cols-2">
     <div class="note" label="">
+        <p>
         <b>Source:</b> School-level STAAR assesment scores ("meets grade level") for schools offering 3rd-grade level instruction across Texas.
+        </p>
+        <p>
+        <b>Units:</b> These charts are presented at the zip code level. Each point represents the average within a zip.
+        </p>
     </div>
     <div class="tip">
-        Start by comparing
+        <ol>
+        <li>Type in your community of interest (left) to see their STAAR rank.</li>
+        <li>Compare to their rank on various community indicators (right).</li>
+        <li>Drill down to similar communities (bottom).</li>
+        </ol>
     </div>
 </div>
 
@@ -68,23 +77,33 @@ const form = view(Inputs.form(
 
 <div class="grid grid-cols-2">
   <div class="card">
-    ${resize((width) => displot(data, form, width))}
+    ${resize((width) => readingdisplot(data, form, width))}
     ${resize((width) => legend(data, width))}
   </div> 
   <div class="card">
-    ${resize((width) => scatter(data, form, width, {cov: form.covariate}))}
+    ${resize((width) => covdisplot(data, form, form.covariate, width))}
   </div>
 </div>
-
-## Compare to similar communities
 
 ```js
 const excludeDims = ['reading_min','reading_max','reading_mean','reading_std',
     'zip','district_name_nunique','campus_name_nunique'
 ];
 const alldims = d3.difference(Object.keys(data[0]), excludeDims);
-const dims = view(Inputs.checkbox(alldims, {label: "Choose similar zipcodes by: "}));
+const dimsInput = Inputs.checkbox(alldims, {label: "Covariates: "});
+const dims = Generators.input(dimsInput);
 ```
+
+<div class="grid grid-cols-2">
+    <div class="tip">
+        <ol>
+        <li>Make sure one single zip code is selected (above).</li>
+        <li>Choose one or several community indicators (right).</li>
+        <li>Compare your community's rank vs others with similar demographic characteristics.</li>
+        </ol>
+    </div>
+    <div>${dimsInput}</div>
+</div>
 
 ```js
 // Must be separate block from dims.

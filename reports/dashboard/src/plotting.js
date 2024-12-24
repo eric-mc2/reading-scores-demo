@@ -17,27 +17,45 @@ export function scatter(data, inputs, width, {cov} = "median_family_income") {
     })
 }
 
-export function displot(data, inputs, width) {
+function displotdata(data, inputs, dim) {
     // Sort by Y value to show bell curve.
     const dataCopy = data.map(d => ({ ...d }));
-    const sortIndex = d3.sort(d3.range(data.length), (i) => data[i].reading_mean);
+    const sortIndex = d3.sort(d3.range(data.length), (i) => data[i][dim]);
     sortIndex.forEach((originalIndex, newIndex) => {
         dataCopy[originalIndex].sortIndex = 100 * newIndex / data.length;
     });
     const dataFiltered = dataCopy.filter(d => inputs.chooseZip.map(dd=>dd.zip).includes(d.zip));
+    return {dataCopy, dataFiltered}
+}
 
+export function readingdisplot(data, inputs, width) {
+    const datas = displotdata(data, inputs, "reading_mean")
     return Plot.plot({
-        title: "Distribution of Scores",
+        title: "Distribution of Reading Scores",
         width: width,
+        height: 200,
         marks: [
-            Plot.dot(dataCopy, {x: "sortIndex", y: "reading_mean"}),
-            Plot.dot(dataFiltered, {x: "sortIndex", y: "reading_min", symbol: "triangle2"}),
-            Plot.dot(dataFiltered, {x: "sortIndex", y: "reading_max", symbol: "diamond2"}),
-            // Plot.link(dataFiltered, {x1: "sortIndex", x2: "sortIndex", y1:0, y2:100, stroke: "gold"}),
-            // Plot.link(dataFiltered, {x1: 0, x2: 100, y1:"reading_mean", y2:"reading_mean", stroke: "gold"}),
-            Plot.dot(dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
+            Plot.dot(datas.dataCopy, {x: "sortIndex", y: "reading_mean"}),
+            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_min", symbol: "triangle2"}),
+            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_max", symbol: "diamond2"}),
+            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
             Plot.axisX({label: "Rank"}),
             Plot.axisY({label: "% Meets Grade Level"}),
+        ],
+    })
+}
+
+export function covdisplot(data, inputs, dim, width) {
+    const datas = displotdata(data, inputs, dim);
+    return Plot.plot({
+        title: `Distribution of ${dim}`,
+        width: width,
+        height: 200,
+        marks: [
+            Plot.dot(datas.dataCopy, {x: "sortIndex", y: dim}),
+            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: dim, fill:"gold", stroke: "gold"}),
+            Plot.axisX({label: "Rank"}),
+            Plot.axisY({label: dim}),
         ],
     })
 }
@@ -57,7 +75,7 @@ export function barplot(data, highlight, width) {
         marks: [
             Plot.barY(dataCopy, {x: "sortIndex", y: "reading_mean"}),
             Plot.barY(dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
-            Plot.axisX({ticks: [], label: "Similar ZipCodes"}),
+            Plot.axisX({ticks: [], label: "Rank"}),
             Plot.axisY({label: "% Meets Grade Level"}),
         ],
     })
