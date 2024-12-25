@@ -5,7 +5,7 @@ style: styles.css
 
 ```js
 import {readingdisplot, covdisplot,legend,barplot, tickplot} from './plotting.js';
-import {knn} from './nearest.js';
+import {knn, has_dims} from './nearest.js';
 ```
 
 ```js
@@ -91,7 +91,7 @@ const form = view(Inputs.form(
 
 ```js
 const excludeDims = ['reading_min','reading_max','reading_mean','reading_std',
-    'zip','district_name_nunique','campus_name_nunique'
+    'zip','district_name_nunique','campus_name_nunique','district_name_unique'
 ];
 const alldims = d3.difference(Object.keys(data[0]), excludeDims);
 const dimsInput = Inputs.checkbox(alldims, {label: "Covariates: "});
@@ -112,12 +112,13 @@ const dims = Generators.input(dimsInput);
 ```js
 // Must be separate block from dims.
 const pivot = data.filter(d => form.chooseZip.map(dd => dd.zip).includes(d.zip));
-// Display as table for debugging.
-// const nn = (pivot.length === 1) && (dims.length) ? view(Inputs.table(knn(data, pivot[0], 10, dims))) : undefined;
 const K = 20;
 var nn = [];
-if ((pivot.length === 1) && (dims.length)) {
+var no_acs = false;
+if ((pivot.length === 1) && (dims.length) && has_dims(pivot[0], dims)) {
     nn = knn(data, pivot[0], K, dims);
+} else if ((pivot.length === 1) && (dims.length)) {
+    no_acs = true;
 }
 const nntable = Inputs.table(nn, {
     header: {zip: "ZipCode", district_name_unique: "Districts"}, 
@@ -130,15 +131,14 @@ const nntable = Inputs.table(nn, {
     align: {zip: "left", district_name_unique: "left"},
     select: false,
     rows: 20})
-
-// const tickplots = (nn.length === 0) ? [] : resize((width) => tickplot(nn, pivot[0].zip, width));
-// const tickplots = (nn.length === 0) ? [] : tickplot(nn, pivot[0].zip);
 ```
 
 <div class="grid grid-cols-2" style="grid-template-columns: 1fr 3fr; grid-auto-rows: auto;">
   <div class="card grid-rowspan-2">
     <h2>${K} Most-Similar ZipCodes</h2>
-    ${view(nntable)}
+    ${no_acs 
+      ? html`<div class="caution" label="Error">No census data for this zip.</div>`
+      : nntable}
   </div>
   <div class="card">
     ${(nn.length === 0) 
@@ -155,4 +155,25 @@ const nntable = Inputs.table(nn, {
     })
     }
   </div>
+</div>
+
+<div class="warning" label="Note">
+<i>Expecting a scatterplot?</i>
+
+When we see a trend in a scatterplot, we tend to assume the variables are related --
+that one directly affects another. Although this relationship may truly exist,
+a scatterplot is not proof. Scatterplots force us to focus one variable at a time,
+when in reality education outcomes depend on many interrelated factors.
+
+<i>This dashboard does the opposite.</i>
+
+It is designed to emphasize the role of <i>omitted</i>
+variables. By finding similar communities, it <i>controls</i>
+for one or several economic variables. If the highlighted community is leading or lagging
+its peers in education, we must consider two possibilities:
+
+<ol>
+<li>The deviation is due to chance.</li>
+<li>Another <i>omitted</i> variable is causing the deviation.</li>
+</ol>
 </div>
