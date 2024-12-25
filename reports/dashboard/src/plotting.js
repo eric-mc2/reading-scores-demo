@@ -20,9 +20,9 @@ export function scatter(data, inputs, width, {cov} = "median_family_income") {
 function displotdata(data, inputs, dim) {
     // Sort by Y value to show bell curve.
     const dataCopy = data.map(d => ({ ...d }));
-    const sortIndex = d3.sort(d3.range(data.length), (i) => data[i][dim]);
-    sortIndex.forEach((originalIndex, newIndex) => {
-        dataCopy[originalIndex].sortIndex = 100 * newIndex / data.length;
+    const rank = d3.sort(d3.range(data.length), (i) => data[i][dim]);
+    rank.forEach((originalIndex, newIndex) => {
+        dataCopy[originalIndex].rank = 100 * newIndex / data.length;
     });
     const dataFiltered = dataCopy.filter(d => inputs.chooseZip.map(dd=>dd.zip).includes(d.zip));
     return {dataCopy, dataFiltered}
@@ -35,10 +35,10 @@ export function readingdisplot(data, inputs, width) {
         width: width,
         height: 200,
         marks: [
-            Plot.dot(datas.dataCopy, {x: "sortIndex", y: "reading_mean"}),
-            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_min", symbol: "triangle2"}),
-            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_max", symbol: "diamond2"}),
-            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
+            Plot.dot(datas.dataCopy, {x: "rank", y: "reading_mean"}),
+            Plot.dot(datas.dataFiltered, {x: "rank", y: "reading_min", symbol: "triangle2"}),
+            Plot.dot(datas.dataFiltered, {x: "rank", y: "reading_max", symbol: "diamond2"}),
+            Plot.dot(datas.dataFiltered, {x: "rank", y: "reading_mean", fill:"gold", stroke: "gold"}),
             Plot.axisX({label: "Rank"}),
             Plot.axisY({label: "% Meets Grade Level"}),
         ],
@@ -52,8 +52,8 @@ export function covdisplot(data, inputs, dim, width) {
         width: width,
         height: 200,
         marks: [
-            Plot.dot(datas.dataCopy, {x: "sortIndex", y: dim}),
-            Plot.dot(datas.dataFiltered, {x: "sortIndex", y: dim, fill:"gold", stroke: "gold"}),
+            Plot.dot(datas.dataCopy, {x: "rank", y: dim}),
+            Plot.dot(datas.dataFiltered, {x: "rank", y: dim, fill:"gold", stroke: "gold"}),
             Plot.axisX({label: "Rank"}),
             Plot.axisY({label: dim}),
         ],
