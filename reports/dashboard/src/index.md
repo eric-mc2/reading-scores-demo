@@ -62,12 +62,16 @@ const covariates = [
     'percent_below_poverty_black',
     'percent_below_poverty_hispanic']
 const form = view(Inputs.form(
-    {chooseZip: Inputs.search(data, {placeholder: "Highlight zipcode", columns: ["zip"], required: false}),
+    {chooseZip: Inputs.search(data, {
+        placeholder: "ZipCode or District Name", 
+        columns: ["zip","district_name_unique"], 
+        datalist: data.map(d => d.zip),
+        required: false}),
      covariate: Inputs.select(covariates, {value: "median_family_income", label: "Covariate"})},
      {template: ({chooseZip, covariate}) => htl.html`
         <div class="grid grid-cols-2">
-        <div>${chooseZip}</div>
-        <div>${covariate}</div>
+            <div>${chooseZip}</div>
+            <div>${covariate}</div>
         </div>
      `}
 ));
@@ -116,9 +120,14 @@ if ((pivot.length === 1) && (dims.length)) {
     nn = knn(data, pivot[0], K, dims);
 }
 const nntable = Inputs.table(nn, {
-    header: {zip: ""}, 
-    columns: ["zip"], 
-    format: {zip: x => x.toString()},
+    header: {zip: "ZipCode", district_name_unique: "Districts"}, 
+    columns: ["zip","district_name_unique"], 
+    format: {
+        zip: x => x.toString(),
+        district_name_unique: x => x.replace(/[\[\]']/g, ""),
+    },
+    width: {zip: 60},
+    align: {zip: "left", district_name_unique: "left"},
     select: false,
     rows: 20})
 
@@ -132,7 +141,9 @@ const nntable = Inputs.table(nn, {
     ${view(nntable)}
   </div>
   <div class="card">
-    ${(nn.length === 0) ? html`<h2>Reading Scores</h2>` : resize((width) => barplot(nn, pivot[0].zip, width))}
+    ${(nn.length === 0) 
+    ? html`<h2>Reading Scores</h2>` 
+    : resize((width) => barplot(nn, pivot[0].zip, width))}
   </div>
   <div class="card">
     <h2>Compare Community Indicators</h2>
