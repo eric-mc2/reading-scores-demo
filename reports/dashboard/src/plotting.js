@@ -75,7 +75,7 @@ export function barplot(data, highlight, width) {
         marks: [
             Plot.barY(dataCopy, {x: "sortIndex", y: "reading_mean"}),
             Plot.barY(dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
-            Plot.axisX({ticks: [], label: "Rank"}),
+            Plot.axisX({tickFormat: x => x.toString(), label: "Rank"}),
             Plot.axisY({label: "% Meets Grade Level"}),
         ],
     })
