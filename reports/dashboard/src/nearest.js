@@ -14,7 +14,26 @@ export function has_dims(x, dims) {
 }
 
 export function knn(data, pivot, k, dims) {
-    return d3.sort(
-        data.filter(d => has_dims(d, dims)), 
-        (d) => distance(d, pivot, dims)).slice(0,k)
+    // Have to put all data onto similar scale. 
+    // Otherwise this will prioritize closeness to larger-scaled data.
+    const filteredData = data.filter(d => has_dims(d, dims));
+
+    const scales = dims.map(dim => d3.scaleLinear()
+        .domain(d3.extent(filteredData, d => d[dim]))
+        .range([0, 1]));
+
+    const scaledData = filteredData.map(d => ({
+        ...d,
+        ...Object.fromEntries(dims.map((dim, i) => [dim, scales[i](d[dim])])),
+    }));
+    const scaledPivot = Object.fromEntries(
+        dims.map((dim, i) => [dim, scales[i](pivot[dim])])
+    );
+
+    const sortIndex = d3.range(filteredData.length)
+        .sort((a, b) => d3.ascending(distance(scaledData[a], scaledPivot, dims),
+                                     distance(scaledData[b], scaledPivot, dims)));
+   
+    const topK = sortIndex.slice(0, k).map(i => filteredData[i]);
+    return topK;
 }
