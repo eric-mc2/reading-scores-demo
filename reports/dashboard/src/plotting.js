@@ -61,21 +61,16 @@ export function covdisplot(data, inputs, dim, width) {
 }
 
 export function barplot(data, highlight, width) {
-    const dataCopy = data.map(d => ({ ...d }));
-    const sortIndex = d3.sort(d3.range(data.length), (i) => data[i].reading_mean);
-    sortIndex.forEach((originalIndex, newIndex) => {
-        dataCopy[originalIndex].sortIndex = 100 * newIndex / data.length;
-    });
-    const dataFiltered = dataCopy.filter(d => d.zip === highlight);
+    const dataFiltered = data.filter(d => d.zip === highlight);
 
     return Plot.plot({
         title: "Compare Scores",
         width: width,
         height: 200,
         marks: [
-            Plot.barY(dataCopy, {x: "sortIndex", y: "reading_mean"}),
-            Plot.barY(dataFiltered, {x: "sortIndex", y: "reading_mean", fill:"gold", stroke: "gold"}),
-            Plot.axisX({tickFormat: x => x.toString(), label: "Rank"}),
+            Plot.barY(data, {x: "zip", y: "reading_mean", sort: {x: "y"}}),
+            Plot.barY(dataFiltered, {x: "zip", y: "reading_mean", sort: {x: "y"}, fill:"gold", stroke: "gold"}),
+            Plot.axisX({tickFormat: x => x.toString(), label: ""}),
             Plot.axisY({label: "% Meets Grade Level"}),
         ],
     })
