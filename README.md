@@ -8,10 +8,13 @@ school district leader, comparing reading scores to household income and poverty
 at the zip code level. Don't do statistical analysis." Links to
 school reading scores, school locations, and zip-level ACS data were provided.
 
-Features
+Demo
 ----
 
 ![Demo](demo.gif)
+
+Features
+--------
 
 * Search by zip or school district name.
 * Pick covariates to find k nearest neighbors (similar communities).
